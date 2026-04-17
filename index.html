@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UZ API Generator - Shaxsiy API kodini tez yarating</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; }
+    pre { font-size: 0.95rem; line-height: 1.6; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 via-white to-purple-50 min-h-screen">
+
+  <div class="max-w-5xl mx-auto px-6 py-10">
+    <div class="text-center mb-12">
+      <h1 class="text-5xl font-bold text-indigo-700 mb-3 flex items-center justify-center gap-4">
+        <i class="fas fa-rocket"></i> UZ API Generator
+      </h1>
+      <p class="text-xl text-gray-600">O‘zingizga kerakli Node.js API kodini bir necha soniyada yarating</p>
+    </div>
+
+    <div class="bg-white rounded-3xl shadow-xl p-8 md:p-12">
+      <div class="mb-8">
+        <label class="block text-lg font-semibold mb-3 text-gray-700">API nomi</label>
+        <input id="apiName" type="text" value="MyAwesomeAPI" 
+               class="w-full px-6 py-5 text-xl border-2 border-gray-200 rounded-3xl focus:outline-none focus:border-indigo-500">
+      </div>
+
+      <div class="mb-8">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-2xl font-semibold">Endpointlar</h2>
+          <button onclick="addEndpoint()" 
+                  class="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-3xl font-medium flex items-center gap-3 shadow">
+            <i class="fas fa-plus"></i> Yangi Endpoint qo‘shish
+          </button>
+        </div>
+        <div id="endpoints" class="space-y-8"></div>
+      </div>
+
+      <button onclick="generateAPI()" 
+              class="w-full py-6 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white text-2xl font-bold rounded-3xl shadow-lg transition-all">
+        🚀 API Kodini Generatsiya Qilish
+      </button>
+    </div>
+
+    <div id="result" class="mt-16 hidden">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-3xl font-semibold text-gray-800">✅ Tayyor kod (Node.js + Express)</h2>
+        <button onclick="copyCode()" 
+                class="flex items-center gap-3 bg-gray-900 hover:bg-black text-white px-10 py-4 rounded-3xl text-lg">
+          <i class="fas fa-copy"></i> Nusxa olish
+        </button>
+      </div>
+      <pre id="codeBlock" class="bg-zinc-950 text-emerald-300 p-10 rounded-3xl overflow-auto max-h-[650px] shadow-inner border border-zinc-800"></pre>
+    </div>
+  </div>
+
+  <script>
+    // oldingi kod bilan bir xil (avvalgi javobdagi script qismi)
+    let endpointCount = 0;
+
+    function addEndpoint() {
+      endpointCount++;
+      const div = document.createElement('div');
+      div.className = "bg-gray-50 border-2 border-gray-100 p-8 rounded-3xl";
+      div.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+          <div class="md:col-span-5">
+            <label class="block text-sm font-medium mb-2">Path (masalan: /users)</label>
+            <input type="text" value="/users" class="path w-full px-5 py-4 border rounded-2xl text-lg">
+          </div>
+          <div class="md:col-span-3">
+            <label class="block text-sm font-medium mb-2">Method</label>
+            <select class="method w-full px-5 py-4 border rounded-2xl text-lg">
+              <option value="GET">GET</option>
+              <option value="POST">POST</option>
+              <option value="PUT">PUT</option>
+              <option value="DELETE">DELETE</option>
+            </select>
+          </div>
+          <div class="md:col-span-4">
+            <label class="block text-sm font-medium mb-2">Tavsif</label>
+            <input type="text" value="Foydalanuvchilarni olish" class="description w-full px-5 py-4 border rounded-2xl text-lg">
+          </div>
+        </div>
+        <div class="mt-6">
+          <label class="block text-sm font-medium mb-2">Qaytadigan JSON misoli</label>
+          <textarea class="response w-full px-5 py-4 border rounded-3xl font-mono h-44" spellcheck="false">{
+  "success": true,
+  "data": []
+}</textarea>
+        </div>
+        <button onclick="this.parentElement.remove()" class="mt-6 text-red-600 hover:text-red-700 flex items-center gap-2">
+          <i class="fas fa-trash-alt"></i> Bu endpointni o‘chirish
+        </button>
+      `;
+      document.getElementById('endpoints').appendChild(div);
+    }
+
+    function generateAPI() {
+      const apiName = document.getElementById('apiName').value.trim() || "MyAPI";
+      const endpoints = [];
+
+      document.querySelectorAll('#endpoints > div').forEach(div => {
+        const path = div.querySelector('.path').value.trim();
+        const method = div.querySelector('.method').value;
+        const description = div.querySelector('.description').value.trim();
+        let responseExample = { success: true };
+
+        try {
+          const txt = div.querySelector('.response').value.trim();
+          if (txt) responseExample = JSON.parse(txt);
+        } catch(e) {}
+
+        endpoints.push({ path, method, description, responseExample });
+      });
+
+      if (endpoints.length === 0) return alert("Kamida 1 ta endpoint qo‘shing!");
+
+      let code = `// =============================================\n`;
+      code += `// ${apiName} - API Generator tomonidan yaratilgan\n`;
+      code += `// =============================================\n\n`;
+      code += `import express from 'express';\nconst app = express();\napp.use(express.json());\n\n`;
+      code += `// Test uchun ma'lumotlar\nlet items = [];\n\n`;
+
+      endpoints.forEach((ep, i) => {
+        code += `// ${ep.description || `Endpoint ${i+1}`}\n`;
+        code += `app.${ep.method.toLowerCase()}("${ep.path}", (req, res) => {\n`;
+        if (ep.method === "POST" || ep.method === "PUT") {
+          code += `    const newItem = req.body;\n`;
+        }
+        code += `    res.json(${JSON.stringify(ep.responseExample, null, 4)});\n`;
+        code += `});\n\n`;
+      });
+
+      code += `const PORT = process.env.PORT || 5000;\n`;
+      code += `app.listen(PORT, () => {\n`;
+      code += `    console.log(\`✅ ${apiName} API http://localhost:\${PORT} da ishga tushdi\`);\n`;
+      code += `});\n`;
+
+      document.getElementById('result').classList.remove('hidden');
+      document.getElementById('codeBlock').textContent = code;
+      document.getElementById('result').scrollIntoView({ behavior: "smooth" });
+    }
+
+    function copyCode() {
+      const codeText = document.getElementById('codeBlock').textContent;
+      navigator.clipboard.writeText(codeText);
+      alert("✅ Kod nusxa olindi! GitHub’da yangi loyiha ochib joylashtiring.");
+    }
+
+    // Sahifa ochilganda 1 ta endpoint qo‘shish
+    window.onload = addEndpoint;
+  </script>
+</body>
+</html>
