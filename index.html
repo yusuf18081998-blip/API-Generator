@@ -1,158 +1,719 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>UZ API Generator - Shaxsiy API kodini tez yarating</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <style>
-    body { font-family: system-ui, -apple-system, sans-serif; }
-    pre { font-size: 0.95rem; line-height: 1.6; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>API Doc Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue: #38bdf8;
+    --purple: #a855f7;
+    --green: #22c55e;
+    --amber: #fbbf24;
+    --red: #ef4444;
+    --bg: #0a0a0f;
+    --bg2: #070b14;
+    --bg3: #030712;
+    --bg4: #0f172a;
+    --border: #1e3a5f;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --subtle: #475569;
+    --mono: 'JetBrains Mono', monospace;
+    --display: 'Syne', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--display);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(135deg, #0a0a0f 0%, #0f1a2e 50%, #0a0a0f 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 48px 40px 36px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -100px; right: -100px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(56,189,248,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -60px; left: 8%;
+    width: 250px; height: 250px;
+    background: radial-gradient(circle, rgba(168,85,247,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(56,189,248,0.1);
+    border: 1px solid rgba(56,189,248,0.25);
+    color: var(--blue);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 18px;
+    letter-spacing: 0.06em;
+  }
+  .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--blue); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.25} }
+
+  .hero h1 {
+    font-size: 38px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #f8fafc 0%, #38bdf8 55%, #a855f7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.15;
+    margin-bottom: 10px;
+  }
+  .hero p {
+    color: var(--muted);
+    font-size: 13px;
+    font-family: var(--mono);
+  }
+
+  /* ── LAYOUT ── */
+  .main { max-width: 920px; margin: 0 auto; padding: 32px 40px 80px; }
+
+  /* ── SECTION LABEL ── */
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--blue);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(56,189,248,0.35), transparent);
+  }
+
+  /* ── FORM ── */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+
+  label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #94a3b8;
+    font-family: var(--mono);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+  input, select, textarea {
+    background: var(--bg4);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+    appearance: none;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(56,189,248,0.1);
+  }
+  input::placeholder, textarea::placeholder { color: #334155; }
+  select { cursor: pointer; }
+  select option { background: var(--bg4); }
+  textarea { resize: vertical; }
+
+  /* ── ENDPOINT BUILDER ── */
+  .endpoints-builder {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 24px;
+  }
+  .endpoint-row {
+    display: grid;
+    grid-template-columns: 110px 1fr 1fr 36px;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .method-select {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 8px 0;
+    border-radius: 6px;
+    text-align: center;
+    cursor: pointer;
+    border: 1px solid;
+    transition: opacity 0.2s;
+  }
+  .method-GET    { background: rgba(34,197,94,0.15);  color: #22c55e; border-color: rgba(34,197,94,0.35); }
+  .method-POST   { background: rgba(56,189,248,0.15); color: #38bdf8; border-color: rgba(56,189,248,0.35); }
+  .method-PUT    { background: rgba(251,191,36,0.15); color: #fbbf24; border-color: rgba(251,191,36,0.35); }
+  .method-DELETE { background: rgba(239,68,68,0.15);  color: #ef4444; border-color: rgba(239,68,68,0.35); }
+  .method-PATCH  { background: rgba(168,85,247,0.15); color: #a855f7; border-color: rgba(168,85,247,0.35); }
+
+  .remove-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--subtle);
+    width: 36px; height: 36px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .remove-btn:hover { border-color: var(--red); color: var(--red); background: rgba(239,68,68,0.08); }
+
+  .add-ep-btn {
+    background: transparent;
+    border: 1px dashed var(--border);
+    color: var(--blue);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 9px;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s;
+    margin-top: 4px;
+  }
+  .add-ep-btn:hover { border-color: var(--blue); background: rgba(56,189,248,0.05); }
+
+  /* ── GENERATE BTN ── */
+  .generate-btn {
+    background: linear-gradient(135deg, #0ea5e9, #a855f7);
+    border: none;
+    color: #fff;
+    font-family: var(--display);
+    font-size: 15px;
+    font-weight: 700;
+    padding: 15px 32px;
+    border-radius: 10px;
+    cursor: pointer;
+    width: 100%;
+    transition: opacity 0.2s, transform 0.1s;
+    letter-spacing: 0.03em;
+    position: relative;
+    overflow: hidden;
+  }
+  .generate-btn:hover { opacity: 0.88; }
+  .generate-btn:active { transform: scale(0.99); }
+  .generate-btn.loading::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+    animation: shimmer 1s infinite;
+  }
+  @keyframes shimmer { to { left: 100%; } }
+
+  /* ── OUTPUT ── */
+  .output-panel { display: none; margin-top: 36px; }
+  .output-panel.visible { display: block; }
+
+  .doc-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  /* tabs */
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    background: rgba(15,23,42,0.5);
+  }
+  .tab {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 12px 18px;
+    color: var(--subtle);
+    cursor: pointer;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    letter-spacing: 0.06em;
+    transition: all 0.2s;
+  }
+  .tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+  .tab:hover { color: #94a3b8; }
+
+  .tab-content { display: none; padding: 22px; }
+  .tab-content.active { display: block; }
+
+  /* stats */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 22px;
+  }
+  .stat {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+  }
+  .stat-num {
+    font-size: 26px;
+    font-weight: 800;
+    font-family: var(--mono);
+    color: var(--blue);
+  }
+  .stat-lbl {
+    font-size: 10px;
+    color: var(--subtle);
+    margin-top: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  /* auth block */
+  .auth-section {
+    background: rgba(168,85,247,0.05);
+    border: 1px solid rgba(168,85,247,0.22);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+  }
+  .auth-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--purple);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .auth-code {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: #94a3b8;
+  }
+  .auth-code em { font-style: normal; color: var(--purple); }
+
+  /* endpoint docs */
+  .endpoint-doc {
+    border-bottom: 1px solid #0f172a;
+    padding: 16px 0;
+  }
+  .endpoint-doc:last-child { border-bottom: none; padding-bottom: 0; }
+
+  .ep-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+  .ep-method {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 4px;
+    min-width: 66px;
+    text-align: center;
+  }
+  .ep-path { font-family: var(--mono); font-size: 13px; color: var(--text); }
+  .ep-desc { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+
+  /* code blocks */
+  .code-wrap { position: relative; }
+  .code-block {
+    background: var(--bg3);
+    border: 1px solid #0f172a;
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: #94a3b8;
+    white-space: pre-wrap;
+    line-height: 1.7;
+    overflow-x: auto;
+  }
+  .copy-btn {
+    position: absolute;
+    top: 8px; right: 8px;
+    background: var(--border);
+    border: none;
+    color: #94a3b8;
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover { background: var(--blue); color: var(--bg3); }
+
+  /* ── FOOTER ── */
+  .footer {
+    text-align: center;
+    padding: 32px;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--subtle);
+    margin-top: 60px;
+  }
+  .footer span { color: var(--blue); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 640px) {
+    .hero { padding: 32px 20px 24px; }
+    .hero h1 { font-size: 26px; }
+    .main { padding: 24px 20px 60px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .form-group.full { grid-column: 1; }
+    .endpoint-row { grid-template-columns: 90px 1fr 36px; }
+    .endpoint-row input.ep-desc-input { display: none; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
 </head>
-<body class="bg-gradient-to-br from-indigo-50 via-white to-purple-50 min-h-screen">
+<body>
 
-  <div class="max-w-5xl mx-auto px-6 py-10">
-    <div class="text-center mb-12">
-      <h1 class="text-5xl font-bold text-indigo-700 mb-3 flex items-center justify-center gap-4">
-        <i class="fas fa-rocket"></i> UZ API Generator
-      </h1>
-      <p class="text-xl text-gray-600">O‘zingizga kerakli Node.js API kodini bir necha soniyada yarating</p>
+<!-- HERO -->
+<header class="hero">
+  <div class="badge">
+    <span class="badge-dot"></span>
+    API DOC GENERATOR v1.0
+  </div>
+  <h1>API Documentation<br>Generator</h1>
+  <p>// Ma'lumotlarni kiriting → Professional hujjat oling</p>
+</header>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- Step 1 -->
+  <div class="section-label">01 — API ma'lumotlari</div>
+  <div class="form-grid">
+    <div class="form-group">
+      <label>API nomi</label>
+      <input id="apiName" type="text" placeholder="MyApp API" />
     </div>
-
-    <div class="bg-white rounded-3xl shadow-xl p-8 md:p-12">
-      <div class="mb-8">
-        <label class="block text-lg font-semibold mb-3 text-gray-700">API nomi</label>
-        <input id="apiName" type="text" value="MyAwesomeAPI" 
-               class="w-full px-6 py-5 text-xl border-2 border-gray-200 rounded-3xl focus:outline-none focus:border-indigo-500">
-      </div>
-
-      <div class="mb-8">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-2xl font-semibold">Endpointlar</h2>
-          <button onclick="addEndpoint()" 
-                  class="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-3xl font-medium flex items-center gap-3 shadow">
-            <i class="fas fa-plus"></i> Yangi Endpoint qo‘shish
-          </button>
-        </div>
-        <div id="endpoints" class="space-y-8"></div>
-      </div>
-
-      <button onclick="generateAPI()" 
-              class="w-full py-6 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white text-2xl font-bold rounded-3xl shadow-lg transition-all">
-        🚀 API Kodini Generatsiya Qilish
-      </button>
+    <div class="form-group">
+      <label>Versiya</label>
+      <input id="apiVersion" type="text" placeholder="v1.0.0" />
     </div>
-
-    <div id="result" class="mt-16 hidden">
-      <div class="flex items-center justify-between mb-6">
-        <h2 class="text-3xl font-semibold text-gray-800">✅ Tayyor kod (Node.js + Express)</h2>
-        <button onclick="copyCode()" 
-                class="flex items-center gap-3 bg-gray-900 hover:bg-black text-white px-10 py-4 rounded-3xl text-lg">
-          <i class="fas fa-copy"></i> Nusxa olish
-        </button>
-      </div>
-      <pre id="codeBlock" class="bg-zinc-950 text-emerald-300 p-10 rounded-3xl overflow-auto max-h-[650px] shadow-inner border border-zinc-800"></pre>
+    <div class="form-group">
+      <label>Base URL</label>
+      <input id="baseUrl" type="text" placeholder="https://api.example.com" />
+    </div>
+    <div class="form-group">
+      <label>Auth turi</label>
+      <select id="authType">
+        <option value="none">Yo'q</option>
+        <option value="bearer">Bearer Token</option>
+        <option value="apikey">API Key</option>
+        <option value="basic">Basic Auth</option>
+        <option value="oauth2">OAuth 2.0</option>
+      </select>
+    </div>
+    <div class="form-group full">
+      <label>Tavsif</label>
+      <textarea id="apiDesc" rows="2" placeholder="API haqida qisqacha ma'lumot..."></textarea>
     </div>
   </div>
 
-  <script>
-    // oldingi kod bilan bir xil (avvalgi javobdagi script qismi)
-    let endpointCount = 0;
+  <!-- Step 2 -->
+  <div class="section-label">02 — Endpoint'lar</div>
+  <div class="endpoints-builder">
+    <div id="endpointsList">
+      <div class="endpoint-row">
+        <select class="method-select method-GET" onchange="syncMethod(this)">
+          <option>GET</option><option>POST</option><option>PUT</option>
+          <option>DELETE</option><option>PATCH</option>
+        </select>
+        <input type="text" class="ep-path-input" placeholder="/users" />
+        <input type="text" class="ep-desc-input" placeholder="Barcha foydalanuvchilar" />
+        <button class="remove-btn" onclick="removeEp(this)">×</button>
+      </div>
+    </div>
+    <button class="add-ep-btn" onclick="addEp()">+ Endpoint qo'shish</button>
+  </div>
 
-    function addEndpoint() {
-      endpointCount++;
-      const div = document.createElement('div');
-      div.className = "bg-gray-50 border-2 border-gray-100 p-8 rounded-3xl";
-      div.innerHTML = `
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-          <div class="md:col-span-5">
-            <label class="block text-sm font-medium mb-2">Path (masalan: /users)</label>
-            <input type="text" value="/users" class="path w-full px-5 py-4 border rounded-2xl text-lg">
-          </div>
-          <div class="md:col-span-3">
-            <label class="block text-sm font-medium mb-2">Method</label>
-            <select class="method w-full px-5 py-4 border rounded-2xl text-lg">
-              <option value="GET">GET</option>
-              <option value="POST">POST</option>
-              <option value="PUT">PUT</option>
-              <option value="DELETE">DELETE</option>
-            </select>
-          </div>
-          <div class="md:col-span-4">
-            <label class="block text-sm font-medium mb-2">Tavsif</label>
-            <input type="text" value="Foydalanuvchilarni olish" class="description w-full px-5 py-4 border rounded-2xl text-lg">
-          </div>
+  <!-- Step 3 -->
+  <div class="section-label">03 — Sozlamalar</div>
+  <div class="form-grid" style="margin-bottom:28px;">
+    <div class="form-group">
+      <label>Output format</label>
+      <select id="outFormat">
+        <option value="visual">Visual + JSON</option>
+        <option value="markdown">Markdown</option>
+        <option value="openapi">OpenAPI YAML</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Til</label>
+      <select id="outLang">
+        <option value="uz">O'zbek</option>
+        <option value="en">English</option>
+        <option value="ru">Русский</option>
+      </select>
+    </div>
+  </div>
+
+  <button class="generate-btn" id="genBtn" onclick="generate()">
+    ⚡ Dokumentatsiya yaratish
+  </button>
+
+  <!-- OUTPUT -->
+  <div class="output-panel" id="outputPanel">
+    <div class="doc-card">
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('visual',this)">Visual</button>
+        <button class="tab" onclick="switchTab('json',this)">JSON</button>
+        <button class="tab" onclick="switchTab('curl',this)">cURL</button>
+        <button class="tab" onclick="switchTab('yaml',this)">OpenAPI</button>
+      </div>
+
+      <div class="tab-content active" id="tab-visual">
+        <div class="stats-row" id="statsRow"></div>
+        <div id="authBlock"></div>
+        <div id="epDocs"></div>
+      </div>
+
+      <div class="tab-content" id="tab-json">
+        <div class="code-wrap">
+          <pre class="code-block" id="jsonOut"></pre>
+          <button class="copy-btn" onclick="copyEl('jsonOut')">copy</button>
         </div>
-        <div class="mt-6">
-          <label class="block text-sm font-medium mb-2">Qaytadigan JSON misoli</label>
-          <textarea class="response w-full px-5 py-4 border rounded-3xl font-mono h-44" spellcheck="false">{
-  "success": true,
-  "data": []
-}</textarea>
+      </div>
+
+      <div class="tab-content" id="tab-curl">
+        <div class="code-wrap">
+          <pre class="code-block" id="curlOut"></pre>
+          <button class="copy-btn" onclick="copyEl('curlOut')">copy</button>
         </div>
-        <button onclick="this.parentElement.remove()" class="mt-6 text-red-600 hover:text-red-700 flex items-center gap-2">
-          <i class="fas fa-trash-alt"></i> Bu endpointni o‘chirish
-        </button>
+      </div>
+
+      <div class="tab-content" id="tab-yaml">
+        <div class="code-wrap">
+          <pre class="code-block" id="yamlOut"></pre>
+          <button class="copy-btn" onclick="copyEl('yamlOut')">copy</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer class="footer">
+  Made with <span>♥</span> · API Doc Generator v1.0
+</footer>
+
+<script>
+  const MC = {
+    GET:    { bg:'rgba(34,197,94,0.15)',  color:'#22c55e', border:'rgba(34,197,94,0.35)' },
+    POST:   { bg:'rgba(56,189,248,0.15)', color:'#38bdf8', border:'rgba(56,189,248,0.35)' },
+    PUT:    { bg:'rgba(251,191,36,0.15)', color:'#fbbf24', border:'rgba(251,191,36,0.35)' },
+    DELETE: { bg:'rgba(239,68,68,0.15)',  color:'#ef4444', border:'rgba(239,68,68,0.35)' },
+    PATCH:  { bg:'rgba(168,85,247,0.15)', color:'#a855f7', border:'rgba(168,85,247,0.35)' },
+  };
+
+  const SAMPLE = {
+    GET:    '{\n  "status": "success",\n  "data": [ ... ],\n  "total": 100\n}',
+    POST:   '{\n  "status": "created",\n  "id": "abc123",\n  "message": "Yaratildi"\n}',
+    PUT:    '{\n  "status": "updated",\n  "id": "abc123"\n}',
+    DELETE: '{\n  "status": "deleted",\n  "message": "O\'chirildi"\n}',
+    PATCH:  '{\n  "status": "patched",\n  "message": "Yangilandi"\n}',
+  };
+
+  const AUTH_INFO = {
+    bearer: { label:'Bearer Token',  code:'Authorization: <em>Bearer</em> {your_token}' },
+    apikey: { label:'API Key Header', code:'X-API-Key: <em>{your_api_key}</em>' },
+    basic:  { label:'Basic Auth',     code:'Authorization: <em>Basic</em> {base64(user:pass)}' },
+    oauth2: { label:'OAuth 2.0',      code:'Authorization: <em>Bearer</em> {access_token}' },
+    none: null,
+  };
+
+  function syncMethod(sel) {
+    sel.className = 'method-select method-' + sel.value;
+  }
+
+  function addEp() {
+    const row = document.createElement('div');
+    row.className = 'endpoint-row';
+    row.innerHTML = `
+      <select class="method-select method-GET" onchange="syncMethod(this)">
+        <option>GET</option><option>POST</option><option>PUT</option>
+        <option>DELETE</option><option>PATCH</option>
+      </select>
+      <input type="text" class="ep-path-input" placeholder="/endpoint" />
+      <input type="text" class="ep-desc-input" placeholder="Tavsif..." />
+      <button class="remove-btn" onclick="removeEp(this)">×</button>
+    `;
+    document.getElementById('endpointsList').appendChild(row);
+  }
+
+  function removeEp(btn) {
+    const rows = document.querySelectorAll('.endpoint-row');
+    if (rows.length > 1) btn.closest('.endpoint-row').remove();
+  }
+
+  function switchTab(name, btn) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  function copyEl(id) {
+    const el = document.getElementById(id);
+    navigator.clipboard.writeText(el.textContent).then(() => {
+      const btn = el.parentElement.querySelector('.copy-btn');
+      const orig = btn.textContent;
+      btn.textContent = '✓ copied!';
+      setTimeout(() => btn.textContent = orig, 2000);
+    });
+  }
+
+  function getEps() {
+    return Array.from(document.querySelectorAll('.endpoint-row')).map(r => ({
+      method: r.querySelector('select').value,
+      path:   r.querySelector('.ep-path-input').value.trim() || '/endpoint',
+      desc:   r.querySelector('.ep-desc-input').value.trim() || 'Endpoint tavsifi',
+    }));
+  }
+
+  function generate() {
+    const name    = document.getElementById('apiName').value.trim()    || 'My API';
+    const version = document.getElementById('apiVersion').value.trim() || 'v1.0.0';
+    const base    = document.getElementById('baseUrl').value.trim()    || 'https://api.example.com';
+    const auth    = document.getElementById('authType').value;
+    const desc    = document.getElementById('apiDesc').value.trim()    || `${name} uchun REST API.`;
+    const eps     = getEps();
+
+    const btn = document.getElementById('genBtn');
+    btn.classList.add('loading');
+    btn.textContent = '⏳ Yaratilmoqda...';
+
+    setTimeout(() => {
+      btn.classList.remove('loading');
+      btn.textContent = '⚡ Dokumentatsiya yaratish';
+
+      // stats
+      const methods = [...new Set(eps.map(e => e.method))];
+      document.getElementById('statsRow').innerHTML = `
+        <div class="stat"><div class="stat-num">${eps.length}</div><div class="stat-lbl">Endpoints</div></div>
+        <div class="stat"><div class="stat-num">${methods.length}</div><div class="stat-lbl">Methods</div></div>
+        <div class="stat"><div class="stat-num">${auth === 'none' ? '0' : '1'}</div><div class="stat-lbl">Auth</div></div>
+        <div class="stat"><div class="stat-num">JSON</div><div class="stat-lbl">Format</div></div>
       `;
-      document.getElementById('endpoints').appendChild(div);
-    }
 
-    function generateAPI() {
-      const apiName = document.getElementById('apiName').value.trim() || "MyAPI";
-      const endpoints = [];
+      // auth
+      const ai = AUTH_INFO[auth];
+      document.getElementById('authBlock').innerHTML = ai
+        ? `<div class="auth-section"><div class="auth-label">🔐 ${ai.label}</div><div class="auth-code">${ai.code}</div></div>`
+        : '';
 
-      document.querySelectorAll('#endpoints > div').forEach(div => {
-        const path = div.querySelector('.path').value.trim();
-        const method = div.querySelector('.method').value;
-        const description = div.querySelector('.description').value.trim();
-        let responseExample = { success: true };
+      // visual endpoints
+      document.getElementById('epDocs').innerHTML = eps.map(ep => {
+        const m = MC[ep.method];
+        return `
+          <div class="endpoint-doc">
+            <div class="ep-header">
+              <span class="ep-method" style="background:${m.bg};color:${m.color};border:1px solid ${m.border}">${ep.method}</span>
+              <span class="ep-path">${base}${ep.path}</span>
+            </div>
+            <div class="ep-desc">${ep.desc}</div>
+            <pre class="code-block">${SAMPLE[ep.method]}</pre>
+          </div>
+        `;
+      }).join('');
 
-        try {
-          const txt = div.querySelector('.response').value.trim();
-          if (txt) responseExample = JSON.parse(txt);
-        } catch(e) {}
+      // json
+      const obj = {
+        info: { name, version, description: desc, baseUrl: base },
+        auth,
+        endpoints: eps.map(ep => ({
+          method: ep.method,
+          path: ep.path,
+          url: base + ep.path,
+          description: ep.desc,
+        }))
+      };
+      document.getElementById('jsonOut').textContent = JSON.stringify(obj, null, 2);
 
-        endpoints.push({ path, method, description, responseExample });
-      });
+      // curl
+      document.getElementById('curlOut').textContent = eps.map(ep => {
+        const h = auth === 'bearer' ? '\n  -H "Authorization: Bearer {token}"'
+                : auth === 'apikey' ? '\n  -H "X-API-Key: {key}"'
+                : auth === 'basic'  ? '\n  -u "user:pass"' : '';
+        const d = ['POST','PUT','PATCH'].includes(ep.method)
+                ? '\n  -d \'{"key": "value"}\'' : '';
+        return `# ${ep.desc}\ncurl -X ${ep.method} "${base}${ep.path}"${h}${d}`;
+      }).join('\n\n');
 
-      if (endpoints.length === 0) return alert("Kamida 1 ta endpoint qo‘shing!");
+      // yaml
+      document.getElementById('yamlOut').textContent =
+`openapi: "3.0.0"
+info:
+  title: "${name}"
+  version: "${version}"
+  description: "${desc}"
+servers:
+  - url: "${base}"
+paths:
+${eps.map(ep =>
+`  ${ep.path}:
+    ${ep.method.toLowerCase()}:
+      summary: "${ep.desc}"
+      responses:
+        '200':
+          description: "Muvaffaqiyatli"`
+).join('\n')}
+`;
 
-      let code = `// =============================================\n`;
-      code += `// ${apiName} - API Generator tomonidan yaratilgan\n`;
-      code += `// =============================================\n\n`;
-      code += `import express from 'express';\nconst app = express();\napp.use(express.json());\n\n`;
-      code += `// Test uchun ma'lumotlar\nlet items = [];\n\n`;
-
-      endpoints.forEach((ep, i) => {
-        code += `// ${ep.description || `Endpoint ${i+1}`}\n`;
-        code += `app.${ep.method.toLowerCase()}("${ep.path}", (req, res) => {\n`;
-        if (ep.method === "POST" || ep.method === "PUT") {
-          code += `    const newItem = req.body;\n`;
-        }
-        code += `    res.json(${JSON.stringify(ep.responseExample, null, 4)});\n`;
-        code += `});\n\n`;
-      });
-
-      code += `const PORT = process.env.PORT || 5000;\n`;
-      code += `app.listen(PORT, () => {\n`;
-      code += `    console.log(\`✅ ${apiName} API http://localhost:\${PORT} da ishga tushdi\`);\n`;
-      code += `});\n`;
-
-      document.getElementById('result').classList.remove('hidden');
-      document.getElementById('codeBlock').textContent = code;
-      document.getElementById('result').scrollIntoView({ behavior: "smooth" });
-    }
-
-    function copyCode() {
-      const codeText = document.getElementById('codeBlock').textContent;
-      navigator.clipboard.writeText(codeText);
-      alert("✅ Kod nusxa olindi! GitHub’da yangi loyiha ochib joylashtiring.");
-    }
-
-    // Sahifa ochilganda 1 ta endpoint qo‘shish
-    window.onload = addEndpoint;
-  </script>
+      const panel = document.getElementById('outputPanel');
+      panel.classList.add('visible');
+      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 1100);
+  }
+</script>
 </body>
 </html>
